@@ -1,0 +1,31 @@
+{
+  "name": "Vault — Secure Password & Secret Generator",
+  "short_name": "Vault",
+  "description": "Privacy-first password, passphrase, PIN, token and infrastructure secret generator by Emmanuel. Runs locally in your browser.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060713",
+  "theme_color": "#060713",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "lang": "en",
+  "categories": [
+    "security",
+    "utilities",
+    "productivity"
+  ]
+}

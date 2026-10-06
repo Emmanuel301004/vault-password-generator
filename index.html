@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vault — Secure Password & Secret Generator</title>
+<meta name="description" content="Vault is a privacy-first password and secret generator by Emmanuel. Create strong passwords, passphrases, PINs, patterns, API tokens, and infrastructure-grade secrets locally in your browser.">
+<meta name="author" content="Emmanuel">
+<meta name="creator" content="Emmanuel">
+<meta name="application-name" content="Vault">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="googlebot" content="index,follow">
+<meta name="keywords" content="password generator, secure password generator, random password generator, passphrase generator, PIN generator, API token generator, secret generator, SSH password, privacy password tool, offline password generator">
+<meta name="theme-color" content="#060713">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vault">
+<meta property="og:title" content="Vault — Secure Password & Secret Generator">
+<meta property="og:description" content="Generate strong passwords and infrastructure secrets privately in your browser. No account or server required.">
+<meta property="og:image" content="/icon.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Vault — Secure Password & Secret Generator">
+<meta name="twitter:description" content="Privacy-first password, passphrase, PIN and infrastructure secret generator by Emmanuel.">
+<meta name="twitter:image" content="/icon.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23a78bfa'/%3E%3Cpath d='M32 14l16 6v12c0 10-7 16-16 20-9-4-16-10-16-20V20z' fill='white'/%3E%3C/svg%3E">
+<style>
+/* ------------------------------------------------------------------
+   Vault v3 — polished dark UI + Vault (infra-grade) mode
+   ------------------------------------------------------------------ */
+:root{
+  --bg:#060713; --bg2:#0b0d1e; --bg3:#111429;
+  --surf:rgba(255,255,255,.025); --surf2:rgba(255,255,255,.05); --surf3:rgba(255,255,255,.08);
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.14); --bd3:rgba(255,255,255,.22);
+  --text:#f0f2ff; --muted:#8891b3; --muted2:#5c6485;
+  --accent:#a78bfa; --accent2:#60a5fa; --accent3:#34d399; --accent4:#f472b6;
+  --accent-soft:rgba(167,139,250,.14);
+  --digit:#60a5fa; --sym:#fbbf24; --letter:#f0f2ff;
+  --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
+  --lv0:#f87171; --lv1:#fb923c; --lv2:#fbbf24; --lv3:#4ade80; --lv4:#22d3ee;
+  --radius:18px; --radius-sm:12px;
+  --mono:ui-monospace,"JetBrains Mono","SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;
+  --shadow:0 20px 60px -20px rgba(0,0,0,.7), 0 4px 12px -4px rgba(0,0,0,.4);
+  --shadow-sm:0 4px 16px -4px rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f6f8ff; --bg2:#eef1fb; --bg3:#e4e8f6;
+  --surf:#ffffff; --surf2:#f5f7fd; --surf3:#eef1fb;
+  --bd:rgba(20,24,60,.08); --bd2:rgba(20,24,60,.16); --bd3:rgba(20,24,60,.24);
+  --text:#141734; --muted:#5d6486; --muted2:#8a92b2;
+  --accent:#6d4df0; --accent2:#2563eb; --accent3:#059669; --accent4:#db2777;
+  --accent-soft:rgba(109,77,240,.1);
+  --digit:#2563eb; --sym:#c2410c; --letter:#141734;
+  --shadow:0 20px 60px -20px rgba(20,24,60,.18), 0 4px 12px -4px rgba(20,24,60,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{color-scheme:dark}
+[data-theme="light"] html{color-scheme:light}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font:15px/1.55 var(--sans);
+  min-height:100dvh;
+  letter-spacing:-0.005em;
+  transition:background .3s,color .3s;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+  overflow-x:hidden;
+}
+
+/* animated aurora bg */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.aurora span{
+  position:absolute;border-radius:50%;filter:blur(100px);
+  animation:float 24s ease-in-out infinite;
+}
+.aurora .a1{width:52vmax;height:52vmax;background:var(--accent);top:-22vmax;left:-12vmax;opacity:.45}
+.aurora .a2{width:46vmax;height:46vmax;background:var(--accent2);bottom:-22vmax;right:-14vmax;opacity:.3;animation-delay:-8s;animation-direction:reverse}
+.aurora .a3{width:38vmax;height:38vmax;background:var(--accent4);top:40vh;right:-15vmax;opacity:.14;animation-delay:-14s}
+[data-theme="light"] .aurora span{opacity:.14!important}
+[data-theme="light"] .aurora .a1{opacity:.2!important}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(5vmax,3vmax) scale(1.1)}66%{transform:translate(-3vmax,-4vmax) scale(.95)}}
+
+/* grain overlay */
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.025;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+@media(min-width:900px){.wrap{padding:28px 36px 60px}}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{
+  width:46px;height:46px;border-radius:14px;flex:none;
+  background:conic-gradient(from 220deg at 50% 50%,var(--accent),var(--accent2),var(--accent3),var(--accent4),var(--accent));
+  display:grid;place-items:center;
+  box-shadow:0 8px 28px -6px var(--accent),inset 0 1px 0 rgba(255,255,255,.3);
+  position:relative;
+  animation:logo-spin 20s linear infinite;
+}
+@keyframes logo-spin{to{filter:hue-rotate(360deg)}}
+.logo::before{content:"";position:absolute;inset:3px;border-radius:11px;background:var(--bg)}
+.logo svg{width:22px;height:22px;position:relative;z-index:1}
+.logo svg path{fill:url(#lg)}
+.brand h1{font-size:1.15rem;margin:0;font-weight:800;letter-spacing:-0.025em;line-height:1}
+.brand .tag{font-size:.76rem;color:var(--muted);margin:3px 0 0;font-weight:500;letter-spacing:.01em}
+.hdr-r{display:flex;align-items:center;gap:8px;flex:none}
+select.pill,.icon-btn{
+  background:var(--surf2);
+  border:1px solid var(--bd);
+  color:var(--text);
+  border-radius:11px;
+  font:600 .8rem var(--sans);
+  cursor:pointer;
+  transition:all .15s;
+  height:40px;
+  backdrop-filter:blur(10px);
+}
+select.pill{padding:0 12px;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a92b2' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+select.pill option{color:#111;background:#fff}
+.icon-btn{width:40px;display:grid;place-items:center;padding:0}
+.icon-btn:hover,select.pill:hover{border-color:var(--bd2);background:var(--surf3)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* TABS */
+.tabs{
+  display:flex;gap:4px;padding:5px;margin-bottom:18px;
+  background:var(--surf);border:1px solid var(--bd);border-radius:16px;
+  overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;
+  backdrop-filter:blur(20px);
+  box-shadow:var(--shadow-sm);
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1 0 auto;scroll-snap-align:start;
+  background:transparent;border:0;color:var(--muted);
+  padding:10px 14px;border-radius:11px;
+  font:600 .85rem var(--sans);cursor:pointer;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:all .2s;position:relative;
+}
+.tab:hover{color:var(--text);background:var(--surf2)}
+.tab svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.tab[aria-selected=true]{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  box-shadow:0 6px 20px -6px var(--accent),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.tab[aria-selected=true] svg{opacity:1}
+.tab.pro::after{
+  content:"PRO";position:absolute;top:-2px;right:-2px;
+  background:linear-gradient(135deg,var(--accent3),var(--accent2));
+  color:#fff;font-size:.55rem;font-weight:800;letter-spacing:.05em;
+  padding:2px 5px;border-radius:5px;
+  box-shadow:0 2px 6px -2px var(--accent3);
+}
+
+/* LAYOUT */
+.main{display:grid;gap:18px}
+@media(min-width:900px){.main{grid-template-columns:1fr 400px;align-items:start}}
+
+/* CARDS */
+.card{
+  background:var(--surf);
+  border:1px solid var(--bd);
+  border-radius:var(--radius);
+  padding:22px;
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  box-shadow:var(--shadow);
+  position:relative;
+}
+@media(min-width:900px){.card{padding:26px}}
+.card h3{margin:0 0 16px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.card h3 .right{color:var(--text);text-transform:none;letter-spacing:0;font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:6px}
+.card h3 .right .dot{width:6px;height:6px;border-radius:50%;background:var(--accent3);box-shadow:0 0 10px var(--accent3)}
+
+/* OUTPUT CARD */
+.outcard{position:relative;overflow:hidden}
+.outcard::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:linear-gradient(135deg,var(--accent),transparent 35%,transparent 65%,var(--accent2));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.4;pointer-events:none}
+.pwdisplay{
+  background:var(--bg2);
+  border:1px solid var(--bd);
+  border-radius:14px;
+  padding:22px 22px 18px;
+  margin-bottom:14px;
+  position:relative;
+  min-height:96px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.pw{
+  font:600 clamp(1rem,3.4vw,1.4rem)/1.4 var(--mono);
+  word-break:break-all;letter-spacing:.02em;
+  color:var(--letter);min-height:1.4em;
+  display:flex;flex-wrap:wrap;align-items:center;
+}
+.pw.ph{color:var(--muted2);font-weight:400;font-size:.95rem;font-family:var(--sans);letter-spacing:0}
+.pw .d{color:var(--digit)}
+.pw .s{color:var(--sym)}
+.pw-float{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+.pw-float .icon-btn{background:var(--surf3);width:34px;height:34px;border-color:var(--bd2)}
+.pw-float .icon-btn svg{width:15px;height:15px}
+
+.btn-row{display:flex;gap:8px}
+.btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;border:0;border-radius:12px;padding:0 20px;
+  font:600 .9rem var(--sans);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:48px;transition:all .15s;
+  box-shadow:0 8px 24px -8px var(--accent),inset 0 1px 0 rgba(255,255,255,.15);
+  position:relative;overflow:hidden;
+}
+.btn::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.25),transparent 60%);opacity:0;transition:opacity .2s}
+.btn:hover::before{opacity:1}
+.btn:hover{box-shadow:0 10px 30px -6px var(--accent),inset 0 1px 0 rgba(255,255,255,.2);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn.ghost{background:var(--surf2);color:var(--text);border:1px solid var(--bd);box-shadow:none}
+.btn.ghost:hover{border-color:var(--bd2);background:var(--surf3);transform:none}
+.btn.ghost::before{display:none}
+.btn.small{min-height:36px;font-size:.82rem;padding:0 14px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none}
+.btn-row .btn{flex:1}
+.btn.primary{flex:2}
+.btn.danger{background:linear-gradient(135deg,var(--bad),#dc2626);box-shadow:0 8px 24px -8px var(--bad)}
+
+/* METER */
+.meter{display:flex;gap:4px;margin:16px 0 12px;height:6px}
+.meter i{flex:1;background:var(--bd);border-radius:99px;transition:all .4s;position:relative;overflow:hidden}
+.meter i.on::after{content:"";position:absolute;inset:0;background:inherit;filter:blur(4px);opacity:.6}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{
+  background:var(--surf2);
+  border:1px solid var(--bd);
+  border-radius:12px;
+  padding:11px 13px;
+  min-width:0;
+}
+.stat small{display:block;color:var(--muted);font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:4px}
+.stat b{font-size:.95rem;font-weight:700;display:block;overflow-wrap:anywhere;line-height:1.2}
+
+/* NOTES */
+.notes{margin-top:14px;display:grid;gap:7px}
+.note{
+  font-size:.84rem;padding:10px 13px;border-radius:10px;
+  border:1px solid var(--bd);background:var(--surf2);
+  display:flex;align-items:flex-start;gap:9px;
+}
+.note::before{content:"";width:14px;height:14px;border-radius:50%;flex:none;margin-top:3px;box-shadow:0 0 8px currentColor}
+.note.warn{border-color:color-mix(in srgb,var(--warn) 40%,transparent);background:color-mix(in srgb,var(--warn) 9%,transparent);color:var(--warn)}
+.note.warn::before{background:var(--warn)}
+.note.warn{color:inherit}.note.warn::before{color:var(--warn)}
+.note.bad{border-color:color-mix(in srgb,var(--bad) 40%,transparent);background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.note.bad::before{background:var(--bad);color:var(--bad)}
+.note.ok{border-color:color-mix(in srgb,var(--ok) 40%,transparent);background:color-mix(in srgb,var(--ok) 9%,transparent)}
+.note.ok::before{background:var(--ok);color:var(--ok)}
+
+.footrow{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);
+  font-size:.82rem;color:var(--muted);
+}
+.footrow .btn{font-size:.78rem;min-height:34px;padding:0 12px}
+.footrow #breachRes,.footrow #cBreachRes{font-weight:600;font-size:.82rem}
+
+/* FORM */
+.fld{margin-bottom:14px}
+.fld:last-child{margin-bottom:0}
+.lbl,.fld>label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.82rem;color:var(--muted);margin-bottom:7px;font-weight:600;
+}
+.lbl b,.fld>label b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:.9rem}
+input[type=text],input[type=password],input[type=number],textarea,select.fld-sel{
+  background:var(--surf2);color:var(--text);
+  border:1px solid var(--bd);border-radius:11px;
+  padding:11px 13px;font:inherit;width:100%;outline:none;
+  transition:border-color .15s,box-shadow .15s,background .15s;
+}
+input::placeholder,textarea::placeholder{color:var(--muted2)}
+select.fld-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238a92b2' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+select.fld-sel option{color:#111;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:var(--surf3)}
+
+/* RANGE */
+input[type=range]{width:100%;height:28px;background:transparent;cursor:pointer;appearance:none;padding:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;background:var(--surf2);border-radius:99px;border:1px solid var(--bd)}
+input[type=range]::-moz-range-track{height:6px;background:var(--surf2);border-radius:99px;border:1px solid var(--bd)}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));margin-top:-8px;cursor:grab;box-shadow:0 3px 10px -2px var(--accent),0 0 0 4px var(--bg),inset 0 1px 0 rgba(255,255,255,.3)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:0;cursor:grab;box-shadow:0 3px 10px -2px var(--accent)}
+input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;transform:scale(1.15)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chips+.chips,.chips+.fld,.fld+.chips{margin-top:12px}
+.chip{position:relative;cursor:pointer}
+.chip input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.chip span{
+  display:inline-block;padding:8px 13px;border-radius:999px;
+  border:1px solid var(--bd);background:var(--surf2);
+  font-size:.82rem;font-weight:500;color:var(--muted);
+  transition:all .15s;user-select:none;
+}
+.chip input:checked+span{background:var(--accent-soft);border-color:var(--accent);color:var(--text);font-weight:600}
+.chip input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:500px){.two,.three{grid-template-columns:1fr}}
+
+.help{font-size:.8rem;color:var(--muted);margin:0 0 12px;line-height:1.55}
+.help code,.legend code,.kbd{background:var(--surf3);border:1px solid var(--bd);padding:1px 7px;border-radius:6px;font-size:.85em;font-family:var(--mono);color:var(--text)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted);margin:0 0 10px}
+
+.hidden{display:none!important}
+
+textarea{font-family:var(--mono);font-size:.85rem;min-height:180px;resize:vertical;line-height:1.6}
+
+.issues{margin:10px 0 0;padding-left:18px;font-size:.85rem;color:var(--muted)}
+.issues li{margin:4px 0}
+.issues li::marker{color:var(--muted2)}
+
+/* PHONE KEYPAD */
+.phonewrap{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:14px}
+.phone{
+  background:var(--bg2);
+  border:1px solid var(--bd);
+  border-radius:20px;
+  padding:16px;
+  display:grid;grid-template-columns:repeat(3,56px);gap:8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),var(--shadow-sm);
+}
+.key{
+  width:56px;height:56px;border-radius:14px;
+  background:var(--surf2);border:1px solid var(--bd);
+  color:var(--text);cursor:pointer;
+  font:600 1.2rem var(--sans);
+  display:grid;place-items:center;
+  transition:all .1s;position:relative;
+}
+.key:hover{background:var(--surf3);border-color:var(--bd2)}
+.key:active{transform:scale(.92)}
+.key.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text);box-shadow:0 0 20px -4px var(--accent)}
+.key.on::after{
+  content:attr(data-order);
+  position:absolute;top:4px;right:6px;
+  font-size:.6rem;font-weight:800;color:var(--accent);
+  background:var(--bg);border-radius:99px;
+  width:16px;height:16px;display:grid;place-items:center;
+}
+.phone-ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+/* VAULT (INFRA) MODE */
+.vault-banner{
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent3) 15%,transparent),color-mix(in srgb,var(--accent2) 15%,transparent));
+  border:1px solid color-mix(in srgb,var(--accent3) 40%,transparent);
+  border-radius:12px;padding:12px 14px;margin-bottom:16px;
+  display:flex;gap:12px;align-items:flex-start;
+}
+.vault-banner svg{width:20px;height:20px;color:var(--accent3);flex:none;margin-top:2px;stroke:currentColor;fill:none;stroke-width:2}
+.vault-banner div{font-size:.82rem;line-height:1.5;color:var(--text)}
+.vault-banner b{color:var(--accent3)}
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.preset-btn{
+  background:var(--surf2);border:1px solid var(--bd);
+  color:var(--text);border-radius:12px;padding:10px 12px;
+  text-align:left;cursor:pointer;transition:all .15s;
+  display:flex;flex-direction:column;gap:4px;font:inherit;
+}
+.preset-btn:hover{border-color:var(--accent);background:var(--surf3)}
+.preset-btn.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.preset-btn b{font-size:.85rem;font-weight:700}
+.preset-btn small{font-size:.7rem;color:var(--muted);font-family:var(--mono)}
+.format-tabs{display:flex;gap:4px;padding:3px;background:var(--surf2);border:1px solid var(--bd);border-radius:10px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.format-tabs::-webkit-scrollbar{display:none}
+.format-tabs button{flex:1 0 auto;background:transparent;border:0;color:var(--muted);padding:7px 12px;border-radius:7px;font:600 .78rem var(--sans);cursor:pointer;white-space:nowrap;transition:all .15s}
+.format-tabs button[aria-selected=true]{background:var(--surf3);color:var(--text)}
+.format-tabs button:hover{color:var(--text)}
+
+/* HISTORY */
+.hist-item{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:10px 12px;border:1px solid var(--bd);border-radius:11px;
+  background:var(--surf2);font:.82rem var(--mono);
+  cursor:pointer;margin-top:7px;transition:all .15s;
+}
+.hist-item:first-child{margin-top:0}
+.hist-item .meta{color:var(--muted);font-family:var(--sans);font-size:.72rem;font-weight:500;flex:none}
+.hist-item:hover{border-color:var(--accent);background:var(--surf3)}
+
+/* TOAST */
+.toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);
+  background:var(--text);color:var(--bg);padding:12px 22px;border-radius:99px;
+  font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;
+  transition:all .25s;z-index:50;max-width:90vw;text-align:center;
+  box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+footer{text-align:center;color:var(--muted);font-size:.75rem;margin-top:30px;line-height:1.6}
+footer b{color:var(--text)}
+
+@media (max-width:600px){
+  .wrap{padding:14px}
+  header{margin-bottom:16px}
+  .pw-float{position:static;margin-top:12px;justify-content:flex-end}
+  .pwdisplay{padding:18px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stats .stat:last-child{grid-column:span 2}
+  .brand .tag{display:none}
+  .card{padding:18px}
+  .phone{grid-template-columns:repeat(3,52px);gap:7px}
+  .key{width:52px;height:52px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"WebApplication",
+  "name":"Vault",
+  "description":"Privacy-first password and secret generator that runs locally in the browser.",
+  "applicationCategory":"SecurityApplication",
+  "operatingSystem":"Any",
+  "author":{"@type":"Person","name":"Emmanuel"},
+  "creator":{"@type":"Person","name":"Emmanuel"},
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}
+}
+</script>
+</head>
+<body>
+<div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
+<div class="grain"></div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#a78bfa"/>
+    <stop offset=".5" stop-color="#60a5fa"/>
+    <stop offset="1" stop-color="#34d399"/>
+  </linearGradient>
+</defs></svg>
+
+<main class="wrap">
+
+<header>
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 64 64"><path d="M32 8l22 8v16c0 14-9 22-22 28C19 54 10 46 10 32V16z"/></svg></div>
+    <div>
+      <h1>Vault</h1>
+      <p class="tag" data-i18n="tag">Private · offline · nothing stored</p>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <select class="pill" id="lang" aria-label="Language">
+      <option value="en">EN</option><option value="hi">हिं</option><option value="kn">ಕನ್</option>
+    </select>
+    <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" data-mode="random" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M4 10l6-6 4 4-6 6zM14 8l6-6M18 4l2 2"/><path d="M8 20l6-6 4 4-6 6zM12 14l6-6"/></svg><span data-i18n="t_random">Random</span></button>
+  <button class="tab pro" role="tab" data-mode="vault"><svg viewBox="0 0 24 24"><path d="M12 2L4 7v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V7l-8-5z"/><path d="M12 11v4M12 8h.01"/></svg><span data-i18n="t_vault">Vault</span></button>
+  <button class="tab" role="tab" data-mode="name"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span data-i18n="t_name">Name</span></button>
+  <button class="tab" role="tab" data-mode="pass"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span data-i18n="t_pass">Phrase</span></button>
+  <button class="tab" role="tab" data-mode="pin"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 10h.01M12 10h.01M17 10h.01M7 15h10"/></svg><span data-i18n="t_pin">PIN</span></button>
+  <button class="tab" role="tab" data-mode="phone"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01"/></svg><span data-i18n="t_phone">Phone</span></button>
+  <button class="tab" role="tab" data-mode="pattern"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg><span data-i18n="t_pattern">Pattern</span></button>
+  <button class="tab" role="tab" data-mode="bulk"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="t_bulk">Bulk</span></button>
+  <button class="tab" role="tab" data-mode="check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="t_check">Check</span></button>
+  <button class="tab" role="tab" data-mode="stateless"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span data-i18n="t_stateless">Stateless</span></button>
+</nav>
+
+<div class="main">
+  <div class="col-l">
+
+    <!-- OUTPUT -->
+    <section class="card outcard" id="outCard">
+      <h3><span data-i18n="out">Output</span><span class="right"><span class="dot"></span><span id="modeLabel"></span></span></h3>
+      <div class="pwdisplay">
+        <div id="pw" class="pw ph"></div>
+        <div class="pw-float">
+          <button class="icon-btn" id="btnShow" aria-label="Show/hide"><svg viewBox="0 0 24 24" id="eyeIcon"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="icon-btn" id="btnRegen" aria-label="Regenerate"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="btnCopy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg><span data-i18n="copy">Copy</span></button>
+        <button class="btn ghost" id="btnRegen2"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span data-i18n="new">New</span></button>
+      </div>
+      <div class="meter" id="meter"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="stats">
+        <div class="stat"><small data-i18n="strength">Strength</small><b id="sLabel">—</b></div>
+        <div class="stat"><small data-i18n="entropy">Entropy</small><b id="sBits">—</b></div>
+        <div class="stat"><small data-i18n="crack">Crack time</small><b id="sTime">—</b></div>
+      </div>
+      <div class="notes" id="notes"></div>
+      <div class="footrow">
+        <label class="chip"><input type="checkbox" id="autoClear" checked><span>Auto-clear (30s)</span></label>
+        <button class="btn ghost small" id="btnBreach" disabled>Breach check</button>
+        <span id="breachRes"></span>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="card" style="margin-top:16px">
+      <h3><span data-i18n="settings">Settings</span></h3>
+
+      <!-- RANDOM -->
+      <div class="panel" id="p-random" data-auto>
+        <div class="fld"><label><span data-i18n="length">Length</span><b id="rLenV">16</b></label><input type="range" id="rLen" min="4" max="128" value="16"></div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="r_upper" checked><span>A–Z</span></label>
+          <label class="chip"><input type="checkbox" id="r_lower" checked><span>a–z</span></label>
+          <label class="chip"><input type="checkbox" id="r_digit" checked><span>0–9</span></label>
+          <label class="chip"><input type="checkbox" id="r_sym" checked><span>!@#$%</span></label>
+          <label class="chip"><input type="checkbox" id="rSim"><span>No look-alikes</span></label>
+          <label class="chip"><input type="checkbox" id="rAmb"><span>Safe symbols</span></label>
+          <label class="chip"><input type="checkbox" id="rReq" checked><span>One of each</span></label>
+        </div>
+        <div class="two" style="margin-top:12px">
+          <div class="fld"><label>Extras</label><input type="text" id="rExtra" placeholder="e.g. ₹§" maxlength="20" autocomplete="off"></div>
+          <div class="fld"><label>Preset</label>
+            <select class="fld-sel" id="rPreset">
+              <option value="">Custom</option>
+              <option value="everyday">Everyday (16)</option>
+              <option value="strict">Strict site (12)</option>
+              <option value="bank">Bank/email (20)</option>
+              <option value="wifi">Wi-Fi (20)</option>
+              <option value="nosym">No symbols (16)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- VAULT (INFRA) -->
+      <div class="panel hidden" id="p-vault" data-auto>
+        <div class="vault-banner">
+          <svg viewBox="0 0 24 24"><path d="M12 2L4 7v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V7l-8-5z"/></svg>
+          <div><b>Infrastructure-grade.</b> Max entropy for SSH, root/admin accounts, ERP, firewalls, routers, VPN gateways, Wi-Fi WPA3 and service accounts. Safe-ASCII only (no quotes, backslash, or spaces) so it works in config files, YAML, env vars and shell.</div>
+        </div>
+
+        <label class="lbl" style="margin-bottom:7px"><span>Preset</span></label>
+        <div class="preset-grid" id="vPresets">
+          <button class="preset-btn active" data-preset="ssh" type="button"><b>SSH / Root</b><small>32 ch · 192 bits</small></button>
+          <button class="preset-btn" data-preset="erp" type="button"><b>ERP / Admin</b><small>24 ch · all types</small></button>
+          <button class="preset-btn" data-preset="network" type="button"><b>Router / Switch</b><small>20 ch · ASCII-safe</small></button>
+          <button class="preset-btn" data-preset="wifi" type="button"><b>Wi-Fi WPA3</b><small>24 ch · letters+digits</small></button>
+          <button class="preset-btn" data-preset="service" type="button"><b>Service / API</b><small>40 ch · alnum</small></button>
+          <button class="preset-btn" data-preset="db" type="button"><b>Database</b><small>28 ch · env-safe</small></button>
+          <button class="preset-btn" data-preset="hex" type="button"><b>Hex token</b><small>64 hex · 256 bits</small></button>
+          <button class="preset-btn" data-preset="b64" type="button"><b>Base64 token</b><small>44 ch · 256 bits</small></button>
+          <button class="preset-btn" data-preset="uuid" type="button"><b>UUID v4</b><small>36 ch · 122 bits</small></button>
+          <button class="preset-btn" data-preset="paranoid" type="button"><b>Paranoid</b><small>64 ch · 384 bits</small></button>
+        </div>
+
+        <div class="two">
+          <div class="fld"><label>Length<b id="vLenV">32</b></label><input type="range" id="vLen" min="16" max="128" value="32"></div>
+          <div class="fld"><label>Entropy target</label>
+            <select class="fld-sel" id="vTarget">
+              <option value="128">128 bits (strong)</option>
+              <option value="192" selected>192 bits (very strong)</option>
+              <option value="256">256 bits (paranoid)</option>
+              <option value="384">384 bits (overkill)</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="lbl"><span>Character set</span></label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="v_upper" checked><span>A–Z</span></label>
+          <label class="chip"><input type="checkbox" id="v_lower" checked><span>a–z</span></label>
+          <label class="chip"><input type="checkbox" id="v_digit" checked><span>0–9</span></label>
+          <label class="chip"><input type="checkbox" id="v_sym" checked><span>Symbols</span></label>
+        </div>
+
+        <label class="lbl" style="margin-top:14px"><span>Safety filters</span></label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="vShell" checked><span>Shell-safe (no ' " \ ` $ space)</span></label>
+          <label class="chip"><input type="checkbox" id="vUrl" checked><span>URL-safe (no & ? # / @ : =)</span></label>
+          <label class="chip"><input type="checkbox" id="vYaml"><span>YAML/JSON-safe (no : , [ ] { })</span></label>
+          <label class="chip"><input type="checkbox" id="vSim"><span>No look-alikes</span></label>
+          <label class="chip"><input type="checkbox" id="vStart" checked><span>Must start with letter</span></label>
+          <label class="chip"><input type="checkbox" id="vReq" checked><span>One of each type</span></label>
+        </div>
+
+        <label class="lbl" style="margin-top:14px"><span>Export format</span></label>
+        <div class="format-tabs" id="vFormat" role="tablist">
+          <button type="button" aria-selected="true" data-fmt="plain">Plain</button>
+          <button type="button" aria-selected="false" data-fmt="ssh">SSH config</button>
+          <button type="button" aria-selected="false" data-fmt="env">.env file</button>
+          <button type="button" aria-selected="false" data-fmt="yaml">YAML</button>
+          <button type="button" aria-selected="false" data-fmt="docker">Docker secret</button>
+          <button type="button" aria-selected="false" data-fmt="htpasswd">htpasswd note</button>
+        </div>
+        <div class="fld"><label><span>Label / username (for formatted export)</span></label>
+          <input type="text" id="vLabel" placeholder="e.g. root@srv01, admin, DB_PASSWORD" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- NAME -->
+      <div class="panel hidden" id="p-name" data-auto>
+        <p class="help">Your name is a <b>memory hook</b> only — it counts as <b>0 bits</b>. Strength comes from the random core and random words.</p>
+        <div class="fld"><label>Name or word</label><input type="text" id="nName" placeholder="e.g. Ravi" maxlength="30" autocomplete="off"></div>
+        <div class="two">
+          <div class="fld"><label>Position</label><select class="fld-sel" id="nPos"><option value="start">Start</option><option value="middle">Middle</option><option value="end">End</option></select></div>
+          <div class="fld"><label>Casing</label><select class="fld-sel" id="nCase"><option value="typed">As typed</option><option value="title">Title case</option><option value="random">Random</option></select></div>
+        </div>
+        <div class="two">
+          <div class="fld"><label>Separator</label><select class="fld-sel" id="nSep"><option value="-">Hyphen</option><option value="_">Underscore</option><option value=".">Dot</option><option value="#">Hash</option><option value="">None</option></select></div>
+          <div class="fld"><label>Random words<b id="nWordsV">1</b></label><input type="range" id="nWords" min="0" max="4" value="1"></div>
+        </div>
+        <div class="fld"><label>Core length<b id="nLenV">10</b></label><input type="range" id="nLen" min="4" max="32" value="10"></div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="n_letters" checked><span>Letters</span></label>
+          <label class="chip"><input type="checkbox" id="n_digit" checked><span>Digits</span></label>
+          <label class="chip"><input type="checkbox" id="n_sym" checked><span>Symbols</span></label>
+        </div>
+      </div>
+
+      <!-- PASSPHRASE -->
+      <div class="panel hidden" id="p-pass" data-auto>
+        <div class="two">
+          <div class="fld"><label>Words<b id="pWordsV">5</b></label><input type="range" id="pWords" min="3" max="10" value="5"></div>
+          <div class="fld"><label>Separator</label><select class="fld-sel" id="pSep"><option value="-">Hyphen</option><option value=" ">Space</option><option value=".">Dot</option><option value="_">Underscore</option><option value="">None</option></select></div>
+        </div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="pCap" checked><span>Capitalize</span></label>
+          <label class="chip"><input type="checkbox" id="pNum" checked><span>Add number</span></label>
+          <label class="chip"><input type="checkbox" id="pSym"><span>Add symbol</span></label>
+        </div>
+        <p class="help" id="pHelp" style="margin:12px 0 0"></p>
+      </div>
+
+      <!-- PIN -->
+      <div class="panel hidden" id="p-pin" data-auto>
+        <div class="fld"><label>Digits<b id="pinLenV">6</b></label><input type="range" id="pinLen" min="4" max="12" value="6"></div>
+        <div class="chips"><label class="chip"><input type="checkbox" id="pinAvoid" checked><span>Avoid 1234, 1111, 1212…</span></label></div>
+        <p class="help" style="margin-top:12px">PINs are short, so they only hold up where the system limits wrong tries (phone lock, ATM, SIM). Use 6+ digits when the service allows it.</p>
+      </div>
+
+      <!-- PHONE PATTERN -->
+      <div class="panel hidden" id="p-phone">
+        <p class="help">Android-style <b>pattern lock</b>: 4–9 dots joined in order. Shoulder-surfing and smudge attacks make these weak — longer and twistier is better.</p>
+        <div class="phonewrap">
+          <div class="phone" id="phonePad" aria-label="Pattern preview"></div>
+          <div class="phone-ctrl">
+            <button class="btn small" id="phoneNew" type="button">New random</button>
+            <button class="btn ghost small" id="phoneClear" type="button">Clear</button>
+          </div>
+        </div>
+        <div class="fld"><label>Dots to use<b id="phLenV">6</b></label><input type="range" id="phLen" min="4" max="9" value="6"></div>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="phCorner" checked><span>Avoid corner start</span></label>
+          <label class="chip"><input type="checkbox" id="phStraight" checked><span>Avoid straight lines</span></label>
+          <label class="chip"><input type="checkbox" id="phKnight"><span>Prefer knight jumps</span></label>
+        </div>
+      </div>
+
+      <!-- PATTERN -->
+      <div class="panel hidden" id="p-pattern" data-auto>
+        <div class="fld"><label>Template</label><input type="text" id="patIn" value="Cccc-dddd-ssss-Cccc" autocomplete="off" spellcheck="false"></div>
+        <div class="legend"><span><code>C</code> cap</span><span><code>c</code> lower</span><span><code>d</code> digit</span><span><code>s</code> symbol</span><span><code>x</code> any</span><span><code>w</code> word</span><span>other chars kept</span></div>
+        <div class="chips" id="patChips">
+          <button class="chip" data-pat="Cccc-dddd-ssss-Cccc" type="button"><span>Cccc-dddd-ssss-Cccc</span></button>
+          <button class="chip" data-pat="w-w-w-dd" type="button"><span>w-w-w-dd</span></button>
+          <button class="chip" data-pat="xxxxxxxxxxxxxxxxxxxx" type="button"><span>20 any</span></button>
+          <button class="chip" data-pat="Cccccc@dddd" type="button"><span>Cccccc@dddd</span></button>
+        </div>
+      </div>
+
+      <!-- BULK -->
+      <div class="panel hidden" id="p-bulk">
+        <div class="two">
+          <div class="fld"><label>Using settings from</label>
+            <select class="fld-sel" id="bSrc"><option value="random">Random</option><option value="vault">Vault (infra)</option><option value="name">Name + Core</option><option value="pass">Passphrase</option><option value="pin">PIN</option><option value="pattern">Pattern</option></select>
+          </div>
+          <div class="fld"><label>How many<b id="bCountV">10</b></label><input type="range" id="bCount" min="5" max="100" value="10"></div>
+        </div>
+        <div class="btn-row" style="margin-bottom:10px">
+          <button class="btn small" id="bGo" type="button">Generate</button>
+          <button class="btn ghost small" id="bCopy" type="button">Copy all</button>
+          <button class="btn ghost small" id="bTxt" type="button">.txt</button>
+          <button class="btn ghost small" id="bCsv" type="button">.csv</button>
+        </div>
+        <textarea id="bOut" readonly placeholder="Passwords will appear here, one per line."></textarea>
+      </div>
+
+      <!-- CHECKER -->
+      <div class="panel hidden" id="p-check">
+        <div class="fld"><label>Password to test (stays on your device)</label>
+          <div style="display:flex;gap:8px">
+            <input type="password" id="cIn" autocomplete="off" spellcheck="false" placeholder="Type or paste">
+            <button class="icon-btn" id="cShow" type="button" aria-label="Show"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <div class="fld"><label>Personal info to flag (names, pets, birth year…)</label><input type="text" id="cPers" placeholder="ravi, priya, 1998" autocomplete="off"></div>
+        <div class="meter" id="cMeter"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="stats">
+          <div class="stat"><small>Strength</small><b id="cLabel">—</b></div>
+          <div class="stat"><small>Entropy</small><b id="cBits">—</b></div>
+          <div class="stat"><small>Crack time</small><b id="cTime">—</b></div>
+        </div>
+        <ul class="issues" id="cIssues"></ul>
+        <div class="footrow"><button class="btn ghost small" id="cBreach" disabled>Breach check</button><span id="cBreachRes"></span></div>
+      </div>
+
+      <!-- STATELESS -->
+      <div class="panel hidden" id="p-stateless" data-auto>
+        <p class="help"><b>Master password + site</b> always gives the same password — nothing stored. PBKDF2-SHA256 (210,000 rounds). Only as strong as your master.</p>
+        <div class="two">
+          <div class="fld"><label>Master password</label><input type="password" id="sMaster" autocomplete="off" placeholder="Long and memorable"></div>
+          <div class="fld"><label>Site or label</label><input type="text" id="sSite" autocomplete="off" placeholder="gmail.com"></div>
+        </div>
+        <div class="two">
+          <div class="fld"><label>Username (optional)</label><input type="text" id="sUser" autocomplete="off"></div>
+          <div class="fld"><label>Counter<b id="sCntV">1</b></label><input type="range" id="sCnt" min="1" max="20" value="1"></div>
+        </div>
+        <div class="fld"><label>Length<b id="sLenV">16</b></label><input type="range" id="sLen" min="8" max="64" value="16"></div>
+        <div class="chips"><label class="chip"><input type="checkbox" id="sSym" checked><span>Include symbols</span></label></div>
+      </div>
+
+    </section>
+  </div>
+
+  <aside class="col-r">
+    <section class="card">
+      <h3><span data-i18n="hist">Session history</span></h3>
+      <div id="hist"></div>
+      <div class="footrow" style="margin-top:10px;padding-top:12px"><button class="btn ghost small" id="histClear">Clear</button><span style="font-size:.78rem">Memory only · gone on refresh</span></div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <h3>Guidelines</h3>
+      <ul class="issues" style="margin-top:0;padding-left:16px;line-height:1.8">
+        <li>Everyday accounts: <b>60+ bits</b></li>
+        <li>Admin/root/ERP: <b>128+ bits</b></li>
+        <li>SSH/service keys: <b>192+ bits</b></li>
+        <li>Never reuse — one leak sinks everything</li>
+        <li>Always enable <b>2FA/MFA</b> on top</li>
+        <li>Rotate shared infra passwords on staff changes</li>
+      </ul>
+    </section>
+  </aside>
+</div>
+
+<footer>
+  <p><b>100% private.</b> Random values come from <code>crypto.getRandomValues()</code>. Nothing is stored, logged or sent. The optional breach check sends only the first 5 chars of an SHA-1 hash (k-anonymity).</p>
+  <p>Vault is a privacy-first security utility created by <b>Emmanuel</b>.</p>
+</footer>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const log2 = Math.log2;
+
+/* ---------- i18n ---------- */
+const I18N = {
+  en:{tag:'Private · offline · nothing stored',t_random:'Random',t_vault:'Vault',t_name:'Name',t_pass:'Phrase',t_pin:'PIN',t_phone:'Phone',t_pattern:'Pattern',t_bulk:'Bulk',t_check:'Check',t_stateless:'Stateless',copy:'Copy',new:'New',strength:'Strength',entropy:'Entropy',crack:'Crack time',length:'Length',copied:'Copied',ph:'Press generate or adjust settings',out:'Output',settings:'Settings',hist:'Session history',lv:['Very weak','Weak','Fair','Strong','Excellent'],modes:{random:'Random',vault:'Vault · infra-grade',name:'Name + Core',pass:'Passphrase',pin:'PIN',phone:'Phone pattern',pattern:'Template',bulk:'Bulk',check:'Checker',stateless:'Stateless'}},
+  hi:{tag:'निजी · ऑफ़लाइन · कुछ नहीं रखा',t_random:'रैंडम',t_vault:'वॉल्ट',t_name:'नाम',t_pass:'वाक्यांश',t_pin:'पिन',t_phone:'फ़ोन',t_pattern:'टेम्पलेट',t_bulk:'बल्क',t_check:'जाँच',t_stateless:'स्टेटलेस',copy:'कॉपी',new:'नया',strength:'मज़बूती',entropy:'एंट्रॉपी',crack:'क्रैक समय',length:'लंबाई',copied:'कॉपी हुआ',ph:'जनरेट दबाएँ',out:'आउटपुट',settings:'सेटिंग्स',hist:'सत्र इतिहास',lv:['बहुत कमज़ोर','कमज़ोर','ठीक-ठाक','मज़बूत','बेहतरीन'],modes:{random:'रैंडम',vault:'वॉल्ट · इन्फ्रा',name:'नाम + कोर',pass:'पासफ़्रेज़',pin:'पिन',phone:'फ़ोन पैटर्न',pattern:'टेम्पलेट',bulk:'बल्क',check:'चेकर',stateless:'स्टेटलेस'}},
+  kn:{tag:'ಖಾಸಗಿ · ಆಫ್‌ಲೈನ್ · ಏನೂ ಸಂಗ್ರಹವಾಗಿಲ್ಲ',t_random:'ರ್ಯಾಂಡಮ್',t_vault:'ವಾಲ್ಟ್',t_name:'ಹೆಸರು',t_pass:'ವಾಕ್ಯಾಂಶ',t_pin:'ಪಿನ್',t_phone:'ಫೋನ್',t_pattern:'ಟೆಂಪ್ಲೇಟ್',t_bulk:'ಬಲ್ಕ್',t_check:'ಪರಿಶೀಲನೆ',t_stateless:'ಸ್ಟೇಟ್‌ಲೆಸ್',copy:'ನಕಲಿಸಿ',new:'ಹೊಸ',strength:'ಬಲ',entropy:'ಎಂಟ್ರೊಪಿ',crack:'ಭೇದಿಸುವ ಸಮಯ',length:'ಉದ್ದ',copied:'ನಕಲಿಸಲಾಗಿದೆ',ph:'ಜನರೇಟ್ ಒತ್ತಿ',out:'ಔಟ್‌ಪುಟ್',settings:'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',hist:'ಸೆಷನ್',lv:['ಬಹಳ ದುರ್ಬಲ','ದುರ್ಬಲ','ಸಾಧಾರಣ','ಬಲವಾದ','ಅತ್ಯುತ್ತಮ'],modes:{random:'ರ್ಯಾಂಡಮ್',vault:'ವಾಲ್ಟ್ · ಇನ್‌ಫ್ರಾ',name:'ಹೆಸರು + ಕೋರ್',pass:'ಪಾಸ್‌ಫ್ರೇಸ್',pin:'ಪಿನ್',phone:'ಫೋನ್ ಪ್ಯಾಟರ್ನ್',pattern:'ಟೆಂಪ್ಲೇಟ್',bulk:'ಬಲ್ಕ್',check:'ಚೆಕರ್',stateless:'ಸ್ಟೇಟ್‌ಲೆಸ್'}}
+};
+let T = I18N.en;
+const tr = k => (T[k] !== undefined ? T[k] : I18N.en[k]);
+function applyLang(code){
+  T = I18N[code] || I18N.en;
+  document.documentElement.lang = code;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = tr(el.dataset.i18n); });
+  updateModeLabel();
+  if (state.last) render(state.last, true); else showPlaceholder();
+  runCheck();
+}
+function updateModeLabel(){ $('modeLabel').textContent = (T.modes || I18N.en.modes)[state.mode] || ''; }
+
+/* ---------- secure randomness ---------- */
+function rnd(n){
+  const a = new Uint32Array(1);
+  const max = Math.floor(4294967296 / n) * n;
+  do { crypto.getRandomValues(a); } while (a[0] >= max);
+  return a[0] % n;
+}
+const pick = arr => arr[rnd(arr.length)];
+function shuffle(arr){ for (let i = arr.length - 1; i > 0; i--){ const j = rnd(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+
+/* ---------- sets ---------- */
+const SETS = {
+  upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ', lower:'abcdefghijklmnopqrstuvwxyz',
+  digit:'0123456789', sym:'!@#$%^&*()-_=+[]{};:,.?/~'
+};
+const SIM = new Set('0Oo1lI|');
+const AMB = new Set('{}[]()/\\\'"`~,;:.<>');
+const SAFE_SYM = '!@#$%^&*-_=+?';
+const SHELL_UNSAFE = new Set('\'"`\\$ ');
+const URL_UNSAFE = new Set('&?#/@:=+%');
+const YAML_UNSAFE = new Set(':,[]{}&*!|>#\'"%@`');
+const filt = (str, sim, amb) => [...str].filter(c => !(sim && SIM.has(c)) && !(amb && AMB.has(c)));
+
+function build(len, required, optional, requireEach){
+  const pool = [...new Set(required.flat().concat(optional))];
+  if (!pool.length) return { s:'', pool:0 };
+  const chars = [];
+  if (requireEach && len >= required.length) required.forEach(g => chars.push(pick(g)));
+  while (chars.length < len) chars.push(pick(pool));
+  shuffle(chars);
+  return { s: chars.join(''), pool: pool.length };
+}
+
+/* ---------- words ---------- */
+const WORDS = [...new Set(("apple arrow atlas autumn bamboo banner barley basket beacon berry biscuit blossom border bottle breeze bridge bronze bubble cabin cactus camel candle canyon carpet castle cedar cherry circle clover cobalt comet copper coral cotton cricket crystal curry daisy dancer desert diamond dragon drum eagle ember engine falcon feather fiddle forest fossil galaxy garden garlic ginger glacier goblet granite gravel guitar hammer harbor hazel helmet honey horizon island ivory jacket jaguar jasmine jungle kettle kernel kitten ladder lagoon lantern laurel lemon lizard lotus magnet mango maple marble meadow mellow melon meteor mirror monsoon mosaic mountain muffin nectar needle nickel noodle nutmeg oasis ocean olive onion orchid orbit otter oyster paddle palace panda paper parrot pearl pebble pepper pigeon pillow pirate planet plum pocket pollen pony poppy prairie pumpkin puzzle quartz rabbit radar rainbow raven reef ribbon river rocket saddle saffron sailor salmon sandal sapphire scarlet shadow silver sketch slate sparrow spice spiral spruce squirrel stallion sunset swallow tablet tangerine temple thunder tiger timber tomato topaz tractor trumpet tulip tunnel turtle umbrella valley velvet violet volcano walnut wander whistle willow window winter wizard yogurt zebra zephyr anchor amber acorn badger beetle bison blanket bolt brook buffalo button candy cargo cinder cliff cloud compass cookie cosmos crane creek cushion dolphin donkey dune elbow elm fabric ferry fig flame flute fox frost gadget gecko gem giraffe glove goose grape hawk heron hill hobby igloo iris jelly kayak kiwi koala lark lava lily llama lynx mammoth maze mint moose moss nest nomad oak opal orange owl peach penguin pine quill raisin robin sage seal shell sky snow star stone sugar swan trail walrus wheat wolf yarn zinc").split(' '))];
+const WBITS = log2(WORDS.length);
+$('pHelp').textContent = 'Each word ≈ ' + WBITS.toFixed(1) + ' bits (list of ' + WORDS.length + '). 5–6 words is a solid everyday range.';
+
+/* ---------- generators ---------- */
+const GEN = {};
+
+GEN.random = function(){
+  const sim = $('rSim').checked, amb = $('rAmb').checked;
+  const req = [];
+  ['upper','lower','digit','sym'].forEach(t => { if ($('r_' + t).checked){ const g = filt(SETS[t], sim, amb); if (g.length) req.push(g); } });
+  const extra = filt($('rExtra').value, sim, amb);
+  if (!req.length && !extra.length) return { empty:'Select at least one character type' };
+  const len = +$('rLen').value;
+  const r = build(len, req, extra, $('rReq').checked);
+  const bits = len * log2(r.pool);
+  const warns = [];
+  if (len < 12) warns.push(['warn','Under 12 characters cracks quickly offline. 16+ is safer.']);
+  return { pw:r.s, bits, warns };
+};
+
+/* ---------- VAULT (infra-grade) ---------- */
+const VAULT_PRESETS = {
+  ssh:{ len:32, u:1, l:1, d:1, s:1, shell:1, url:1, yaml:0, sim:0, start:1, format:'ssh', label:'root@server' },
+  erp:{ len:24, u:1, l:1, d:1, s:1, shell:1, url:0, yaml:0, sim:0, start:1, format:'plain', label:'erp_admin' },
+  network:{ len:20, u:1, l:1, d:1, s:1, shell:1, url:0, yaml:0, sim:1, start:1, format:'plain', label:'enable' },
+  wifi:{ len:24, u:1, l:1, d:1, s:0, shell:0, url:0, yaml:0, sim:1, start:0, format:'plain', label:'office_wifi' },
+  service:{ len:40, u:1, l:1, d:1, s:0, shell:1, url:1, yaml:1, sim:0, start:1, format:'env', label:'API_KEY' },
+  db:{ len:28, u:1, l:1, d:1, s:1, shell:1, url:1, yaml:1, sim:0, start:1, format:'env', label:'DB_PASSWORD' },
+  hex:{ custom:'hex', format:'env', label:'SECRET_KEY' },
+  b64:{ custom:'b64', format:'env', label:'SESSION_SECRET' },
+  uuid:{ custom:'uuid', format:'plain', label:'request_id' },
+  paranoid:{ len:64, u:1, l:1, d:1, s:1, shell:1, url:1, yaml:1, sim:0, start:1, format:'plain', label:'master' }
+};
+let vState = { preset:'ssh', format:'plain' };
+
+function applyVaultPreset(key){
+  const p = VAULT_PRESETS[key]; if (!p) return;
+  vState.preset = key;
+  document.querySelectorAll('#vPresets .preset-btn').forEach(b => b.classList.toggle('active', b.dataset.preset === key));
+  if (p.custom){ /* hex/b64/uuid handled directly */ } else {
+    $('vLen').value = p.len; $('vLenV').textContent = p.len;
+    $('v_upper').checked = !!p.u; $('v_lower').checked = !!p.l;
+    $('v_digit').checked = !!p.d; $('v_sym').checked = !!p.s;
+    $('vShell').checked = !!p.shell; $('vUrl').checked = !!p.url;
+    $('vYaml').checked = !!p.yaml; $('vSim').checked = !!p.sim;
+    $('vStart').checked = !!p.start; $('vReq').checked = true;
+  }
+  vState.format = p.format;
+  $('vLabel').value = p.label || '';
+  document.querySelectorAll('#vFormat button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.fmt === p.format)));
+  regen();
+}
+
+function hexToken(bytes){
+  const b = new Uint8Array(bytes);
+  crypto.getRandomValues(b);
+  return [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+function b64Token(bytes){
+  const b = new Uint8Array(bytes);
+  crypto.getRandomValues(b);
+  // URL-safe base64 without padding
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function uuidV4(){
+  const b = new Uint8Array(16);
+  crypto.getRandomValues(b);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+  return h.slice(0,8) + '-' + h.slice(8,12) + '-' + h.slice(12,16) + '-' + h.slice(16,20) + '-' + h.slice(20);
+}
+
+function formatSecret(pw, fmt, label){
+  const lbl = label || 'password';
+  switch (fmt){
+    case 'ssh': return '# ~/.ssh/config entry — paste after Host block\n# ' + lbl + '\nPassword: ' + pw;
+    case 'env': return (lbl.toUpperCase().replace(/[^A-Z0-9_]/g,'_')) + '=' + (/[\s"'$\\]/.test(pw) ? '"' + pw.replace(/"/g,'\\"') + '"' : pw);
+    case 'yaml': return (lbl.replace(/[^a-zA-Z0-9_]/g,'_')) + ': "' + pw.replace(/"/g,'\\"') + '"';
+    case 'docker': return 'echo -n "' + pw.replace(/"/g,'\\"') + '" | docker secret create ' + (lbl.replace(/[^a-zA-Z0-9_-]/g,'_')) + ' -';
+    case 'htpasswd': return '# Run on server (requires apache2-utils):\n# htpasswd -nbB ' + (lbl || 'user') + ' "<the-password>"\n# Password: ' + pw;
+    default: return pw;
+  }
+}
+
+GEN.vault = function(){
+  const p = VAULT_PRESETS[vState.preset];
+  const fmt = vState.format;
+  const label = $('vLabel').value.trim();
+
+  // Custom token generators
+  if (p && p.custom === 'hex'){
+    const pw = hexToken(32); // 256 bits
+    const warns = [], infos = [['ok','256-bit hex token · 64 chars · perfect for API keys, JWT secrets, encryption keys.']];
+    return { pw, display: formatSecret(pw, fmt, label), bits: 256, warns, infos };
+  }
+  if (p && p.custom === 'b64'){
+    const pw = b64Token(32); // 256 bits url-safe
+    const warns = [], infos = [['ok','256-bit URL-safe base64 token · ideal for session secrets, cookies, OAuth state.']];
+    return { pw, display: formatSecret(pw, fmt, label), bits: 256, warns, infos };
+  }
+  if (p && p.custom === 'uuid'){
+    const pw = uuidV4();
+    const warns = [], infos = [['ok','UUID v4 · 122 bits of randomness · use as unique IDs, not as a password.']];
+    return { pw, display: formatSecret(pw, fmt, label), bits: 122, warns, infos };
+  }
+
+  // Standard infra generator
+  const sim = $('vSim').checked;
+  const shell = $('vShell').checked, url = $('vUrl').checked, yaml = $('vYaml').checked;
+  const extraFilter = c => {
+    if (sim && SIM.has(c)) return false;
+    if (shell && SHELL_UNSAFE.has(c)) return false;
+    if (url && URL_UNSAFE.has(c)) return false;
+    if (yaml && YAML_UNSAFE.has(c)) return false;
+    return true;
+  };
+  const req = [];
+  ['upper','lower','digit','sym'].forEach(t => {
+    if ($('v_' + t).checked){
+      const g = [...SETS[t]].filter(extraFilter);
+      if (g.length) req.push(g);
+    }
+  });
+  if (!req.length) return { empty:'Select at least one character type' };
+  const len = +$('vLen').value;
+  const r = build(len, req, [], $('vReq').checked);
+  let pw = r.s;
+  if ($('vStart').checked && pw && !/[A-Za-z]/.test(pw[0])){
+    // ensure first char is a letter
+    const letters = [...SETS.upper, ...SETS.lower].filter(extraFilter);
+    if (letters.length) pw = pick(letters) + pw.slice(1);
+  }
+  const bits = len * log2(r.pool);
+  const warns = [], infos = [];
+  const target = +$('vTarget').value;
+  if (bits >= target) infos.push(['ok','Meets ' + target + '-bit entropy target. Safe for ' + (vState.preset === 'ssh' ? 'SSH / root access.' : vState.preset === 'erp' ? 'ERP / admin accounts.' : vState.preset === 'db' ? 'production databases.' : 'infrastructure use.')]);
+  else warns.push(['warn','Below ' + target + '-bit target (current: ' + Math.round(bits) + '). Increase length.']);
+  if (shell || url || yaml) infos.push(['ok','Filtered for ' + [shell && 'shell', url && 'URL', yaml && 'YAML/JSON'].filter(Boolean).join(', ') + ' — safe to paste into configs.']);
+  if (len < 20) warns.push(['warn','Infra passwords should be 20+ chars to resist offline attacks.']);
+  return { pw, display: formatSecret(pw, fmt, label), bits, warns, infos };
+};
+
+GEN.name = function(){
+  let name = $('nName').value.trim().replace(/\s+/g, '');
+  if (!name) return { empty:'Type a name above' };
+  const style = $('nCase').value;
+  if (style === 'title') name = name[0].toUpperCase() + name.slice(1).toLowerCase();
+  else if (style === 'random') name = [...name].map(c => rnd(2) ? c.toUpperCase() : c.toLowerCase()).join('');
+  const req = [];
+  if ($('n_letters').checked){ req.push([...SETS.upper]); req.push([...SETS.lower]); }
+  if ($('n_digit').checked) req.push([...SETS.digit]);
+  if ($('n_sym').checked) req.push([...SAFE_SYM]);
+  if (!req.length) return { empty:'Select at least one core character type' };
+  const coreLen = +$('nLen').value;
+  const core = build(coreLen, req, [], true);
+  const wc = +$('nWords').value;
+  const words = Array.from({ length: wc }, () => pick(WORDS));
+  const sep = $('nSep').value, pos = $('nPos').value;
+  let parts = [core.s, ...words];
+  if (pos === 'start') parts = [name, ...parts];
+  else if (pos === 'end') parts = [...parts, name];
+  else if (parts.length > 1){ parts.splice(Math.floor(parts.length / 2), 0, name); }
+  else { const h = Math.floor(core.s.length / 2); parts = [core.s.slice(0, h), name, core.s.slice(h)]; }
+  const pw = parts.join(sep);
+  const bits = coreLen * log2(core.pool) + wc * WBITS;
+  const warns = [], infos = [];
+  const share = name.length / pw.length;
+  infos.push(['ok','Name = 0 bits. Strength = ' + coreLen + '-char core' + (wc ? ' + ' + wc + ' word' + (wc > 1 ? 's' : '') : '') + '.']);
+  if (share > 0.4) warns.push(['warn','Name is ' + Math.round(share * 100) + '% of password. Lengthen core.']);
+  if (bits < 50) warns.push(['warn','Aim for 60+ bits for important accounts.']);
+  return { pw, bits, warns, infos };
+};
+
+GEN.pass = function(){
+  const n = +$('pWords').value, sep = $('pSep').value;
+  let ws = Array.from({ length: n }, () => pick(WORDS));
+  if ($('pCap').checked) ws = ws.map(w => w[0].toUpperCase() + w.slice(1));
+  let bits = n * WBITS;
+  if ($('pNum').checked){ ws.push(String(rnd(100)).padStart(2, '0')); bits += log2(100); }
+  if ($('pSym').checked){ ws.push(pick([...SAFE_SYM])); bits += log2(SAFE_SYM.length); }
+  const warns = [];
+  if (bits < 50) warns.push(['warn','Add more words.']);
+  return { pw: ws.join(sep), bits, warns };
+};
+
+GEN.pin = function(){
+  const len = +$('pinLen').value;
+  const bad = s => {
+    if ([...s].every(c => c === s[0])) return true;
+    const d = [...s].map((c, i, a) => i ? a[i] - a[i - 1] : null).slice(1);
+    if (d.every(x => x === 1) || d.every(x => x === -1)) return true;
+    if (len % 2 === 0 && s.slice(0, len / 2) === s.slice(len / 2)) return true;
+    return false;
+  };
+  let s, tries = 0;
+  do { s = Array.from({ length: len }, () => rnd(10)).join(''); } while ($('pinAvoid').checked && bad(s) && ++tries < 1000);
+  const warns = [['warn','PINs are safe only where wrong tries are limited (phone/ATM).']];
+  return { pw:s, bits: len * log2(10), warns };
+};
+
+/* phone pattern */
+const pxy = i => ({ x: (i - 1) % 3, y: Math.floor((i - 1) / 3) });
+function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b, a % b]; } return a || 1; }
+function patternSteps(a, b){
+  const A = pxy(a), B = pxy(b);
+  const dx = B.x - A.x, dy = B.y - A.y;
+  const g = Math.abs(gcd(dx, dy));
+  if (g <= 1) return [];
+  const sx = dx / g, sy = dy / g;
+  const out = [];
+  for (let k = 1; k < g; k++) out.push((A.y + sy * k) * 3 + (A.x + sx * k) + 1);
+  return out;
+}
+function patternScore(seq){
+  if (seq.length < 2) return 0;
+  let s = 0;
+  for (let i = 1; i < seq.length; i++){
+    const a = pxy(seq[i - 1]), b = pxy(seq[i]);
+    const dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y);
+    if ((dx === 1 && dy === 2) || (dx === 2 && dy === 1)) s += 3;
+    else if (dx + dy >= 3) s += 2;
+    else if (dx === 1 && dy === 1) s += 2;
+    else s += 1;
+    if (i >= 2){
+      const c = pxy(seq[i - 2]);
+      if ((b.x - a.x) === (a.x - c.x) && (b.y - a.y) === (a.y - c.y)) s -= 1;
+    }
+  }
+  return s;
+}
+function randomPattern(len, opts){
+  const corners = new Set([1, 3, 7, 9]);
+  const used = new Set();
+  const seq = [];
+  const starts = [...Array(9)].map((_, i) => i + 1);
+  const startPool = opts.noCorner ? starts.filter(n => !corners.has(n)) : starts;
+  seq.push(pick(startPool)); used.add(seq[0]);
+  while (seq.length < len){
+    const last = seq[seq.length - 1];
+    const candidates = starts.filter(n => {
+      if (used.has(n)) return false;
+      const mid = patternSteps(last, n);
+      if (mid.some(m => !used.has(m))) return false;
+      return true;
+    });
+    if (!candidates.length) break;
+    const scored = candidates.map(c => {
+      let w = 1;
+      if (opts.knight){
+        const a = pxy(last), b = pxy(c);
+        const dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y);
+        if ((dx === 1 && dy === 2) || (dx === 2 && dy === 1)) w += 5;
+      }
+      if (opts.noStraight && seq.length >= 2){
+        const a = pxy(seq[seq.length - 2]), b = pxy(last), d = pxy(c);
+        if ((b.x - a.x) === (d.x - b.x) && (b.y - a.y) === (d.y - b.y)) w = Math.max(0.1, w - 2);
+      }
+      return { c, w };
+    });
+    const total = scored.reduce((s, x) => s + x.w, 0);
+    let r = (rnd(1000000) / 1000000) * total, pickC = scored[0].c;
+    for (const x of scored){ r -= x.w; if (r <= 0){ pickC = x.c; break; } }
+    const mid = patternSteps(last, pickC);
+    for (const m of mid){ if (!used.has(m)){ seq.push(m); used.add(m); } }
+    seq.push(pickC); used.add(pickC);
+  }
+  return seq.slice(0, len);
+}
+GEN.phone = function(){
+  const seq = state.phoneSeq;
+  const len = seq.length;
+  if (len < 4) return { empty:'Draw a pattern or press "New random".' };
+  const COUNTS = {4:1624, 5:7152, 6:26016, 7:72912, 8:140704, 9:140704};
+  const bits = log2(COUNTS[len] || 1);
+  const score = patternScore(seq);
+  const warns = [];
+  if (len < 6) warns.push(['warn','Patterns under 6 dots often guessed within 20 tries.']);
+  if (bits < 20) warns.push(['warn','Pattern-space maxes out around 17 bits.']);
+  if (score < len) warns.push(['warn','Looks like a simple shape. Try zig-zags or knight jumps.']);
+  const infos = [['ok','Length ' + len + ' · pattern-space ≈ ' + (COUNTS[len] || 0).toLocaleString('en-IN')]];
+  return { pw: seq.join('-'), bits, warns, infos, display: seq };
+};
+
+GEN.pattern = function(){
+  const pat = $('patIn').value;
+  if (!pat) return { empty:'Enter a template, e.g. Cccc-dddd-ssss' };
+  const all = [...SETS.upper, ...SETS.lower, ...SETS.digit, ...SAFE_SYM];
+  let out = '', bits = 0;
+  for (const ch of pat){
+    switch (ch){
+      case 'C': out += pick([...SETS.upper]); bits += log2(26); break;
+      case 'c': out += pick([...SETS.lower]); bits += log2(26); break;
+      case 'd': out += pick([...SETS.digit]); bits += log2(10); break;
+      case 's': out += pick([...SAFE_SYM]); bits += log2(SAFE_SYM.length); break;
+      case 'x': out += pick(all); bits += log2(all.length); break;
+      case 'w': out += pick(WORDS); bits += WBITS; break;
+      default: out += ch;
+    }
+  }
+  const warns = [];
+  if (bits < 50) warns.push(['warn','Add more random slots.']);
+  return { pw:out, bits, warns };
+};
+
+async function genStateless(){
+  const master = $('sMaster').value, site = $('sSite').value.trim().toLowerCase();
+  if (!master || !site) return { empty:'Enter a master password and a site' };
+  const user = $('sUser').value.trim().toLowerCase(), cnt = +$('sCnt').value, len = +$('sLen').value;
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(master), 'PBKDF2', false, ['deriveBits']);
+  const raw = await crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', iterations:210000,
+    salt: enc.encode('pwgen-v1|' + site + '|' + user + '|' + cnt) }, key, 2048);
+  const bytes = new Uint8Array(raw); let p = 0;
+  const next = n => { const max = Math.floor(256 / n) * n; while (p < bytes.length){ const b = bytes[p++]; if (b < max) return b % n; } throw new Error('exhausted'); };
+  const grp = [[...SETS.upper], [...SETS.lower], [...SETS.digit]];
+  if ($('sSym').checked) grp.push([...SAFE_SYM]);
+  const pool = grp.flat();
+  const chars = grp.map(g => g[next(g.length)]);
+  while (chars.length < len) chars.push(pool[next(pool.length)]);
+  for (let i = chars.length - 1; i > 0; i--){ const j = next(i + 1); [chars[i], chars[j]] = [chars[j], chars[i]]; }
+  const poolBits = len * log2(pool.length);
+  const mBits = analyze(master).bits;
+  const bits = Math.min(poolBits, mBits);
+  const warns = [], infos = [];
+  infos.push(['ok','Same master + site + counter always produces this password.']);
+  if (mBits < 60) warns.push(['warn','Master = weak link (~' + Math.round(mBits) + ' bits). Use a long passphrase.']);
+  return { pw: chars.join(''), bits, warns, infos };
+}
+
+/* ---------- strength + crack time ---------- */
+function level(bits){ return bits < 28 ? 0 : bits < 36 ? 1 : bits < 60 ? 2 : bits < 80 ? 3 : 4; }
+function crackTime(bits){
+  const s = Math.pow(2, bits - 1) / 1e10;
+  if (!isFinite(s)) return 'forever';
+  if (s < 1) return 'instant';
+  const fmt = (v, u) => (v < 10 ? v.toFixed(1) : Math.round(v).toLocaleString('en-IN')) + ' ' + u;
+  if (s < 60) return fmt(s, 'sec');
+  if (s < 3600) return fmt(s / 60, 'min');
+  if (s < 86400) return fmt(s / 3600, 'hr');
+  const y = s / 31557600;
+  if (y < 1) return fmt(s / 86400, 'days');
+  if (y < 1e3) return fmt(y, 'yr');
+  if (y < 1e6) return fmt(y / 1e3, 'K yr');
+  if (y < 1e9) return fmt(y / 1e6, 'M yr');
+  if (y < 1e12) return fmt(y / 1e9, 'B yr');
+  if (y < 1e15) return fmt(y / 1e12, 'T yr');
+  return '> age of universe';
+}
+const LVC = ['var(--lv0)','var(--lv1)','var(--lv2)','var(--lv3)','var(--lv4)'];
+function paintMeter(el, lv){
+  [...el.children].forEach((b, i) => {
+    const on = lv >= 0 && i <= lv;
+    b.style.background = on ? LVC[lv] : '';
+    b.classList.toggle('on', on);
+  });
+}
+
+/* ---------- rendering ---------- */
+const state = { mode:'random', hidden:false, current:'', last:null, anim:0, hist:[], phoneSeq:[] };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function drawPw(text){
+  const el = $('pw'); el.classList.remove('ph'); el.textContent = '';
+  if (state.hidden){ el.textContent = '•'.repeat(Math.min(text.length, 64)); return; }
+  const f = document.createDocumentFragment();
+  for (const ch of text){
+    const s = document.createElement('span');
+    if (/\d/.test(ch)) s.className = 'd';
+    else if (!/[A-Za-z]/.test(ch) && ch !== ' ' && !/[^\x00-\x7F]/.test(ch)) s.className = 's';
+    s.textContent = ch === ' ' ? '\u00a0' : ch;
+    f.appendChild(s);
+  }
+  el.appendChild(f);
+}
+function scramble(text){
+  const id = ++state.anim;
+  if (reduceMotion || state.hidden || text.length > 100){ drawPw(text); return; }
+  const glyphs = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+  const chars = [...text]; let frame = 0; const total = 10;
+  (function step(){
+    if (id !== state.anim) return;
+    if (frame >= total){ drawPw(text); return; }
+    const reveal = Math.floor(chars.length * frame / total);
+    $('pw').classList.remove('ph');
+    $('pw').textContent = chars.map((c, i) => i < reveal || c === ' ' ? c : glyphs[rnd(glyphs.length)]).join('');
+    frame++; setTimeout(step, 28);
+  })();
+}
+function showPlaceholder(msg){
+  state.anim++; state.current = '';
+  const el = $('pw'); el.classList.add('ph'); el.textContent = msg || tr('ph');
+  paintMeter($('meter'), -1);
+  ['sLabel','sBits','sTime'].forEach(i => $(i).textContent = '—');
+  $('notes').textContent = '';
+  $('btnBreach').disabled = true; $('breachRes').textContent = '';
+}
+function addNotes(box, list){
+  box.textContent = '';
+  (list || []).forEach(([kind, text]) => { const d = document.createElement('div'); d.className = 'note ' + kind; d.textContent = text; box.appendChild(d); });
+}
+function render(r, noAnim){
+  state.last = r;
+  if (r.empty || r.error){ showPlaceholder(r.empty || r.error); return; }
+  state.current = r.pw;
+  const display = r.display && typeof r.display === 'string' ? r.display : r.pw;
+  if (noAnim) drawPw(display); else scramble(display);
+  const lv = level(r.bits);
+  paintMeter($('meter'), lv);
+  $('sLabel').textContent = tr('lv')[lv]; $('sLabel').style.color = LVC[lv];
+  $('sBits').textContent = Math.round(r.bits) + ' bits';
+  $('sTime').textContent = crackTime(r.bits);
+  addNotes($('notes'), [...(r.warns || []), ...(r.infos || [])]);
+  $('btnBreach').disabled = false; $('breachRes').textContent = '';
+  if (state.mode === 'phone' && Array.isArray(r.display)) drawPhone(r.display);
+}
+
+let rid = 0;
+async function regen(){
+  const m = state.mode;
+  if (m === 'bulk' || m === 'check') return;
+  if (m === 'phone' && !state.phoneSeq.length) return showPlaceholder('Draw a pattern or press "New random".');
+  const id = ++rid; let r;
+  try { r = m === 'stateless' ? await genStateless() : GEN[m](); }
+  catch (e){ r = { error:'Error: ' + e.message }; }
+  if (id !== rid) return;
+  render(r);
+}
+
+/* ---------- copy/toast/history ---------- */
+let toastT, clearT;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch (e){
+    try { const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; }
+    catch (e2){ return false; }
+  }
+}
+function addHist(pw){
+  if (!pw) return;
+  state.hist = state.hist.filter(h => h.pw !== pw);
+  state.hist.unshift({ pw, mode: state.mode, t: new Date() });
+  state.hist = state.hist.slice(0, 10); drawHist();
+}
+function drawHist(){
+  const box = $('hist'); box.textContent = '';
+  if (!state.hist.length){ const p = document.createElement('p'); p.className = 'help'; p.style.margin = '0'; p.textContent = 'Copied passwords show up here.'; box.appendChild(p); return; }
+  state.hist.forEach(h => {
+    const d = document.createElement('div'); d.className = 'hist-item'; d.title = 'Click to copy';
+    const a = document.createElement('span'); a.textContent = '•'.repeat(Math.min(h.pw.length, 18)) + ' (' + h.pw.length + ')';
+    const b = document.createElement('span'); b.className = 'meta'; b.textContent = h.mode + ' · ' + h.t.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    d.append(a, b); d.onclick = async () => { await copyText(h.pw); toast(tr('copied')); }; box.appendChild(d);
+  });
+}
+async function doCopy(){
+  if (!state.current) return;
+  const r = state.last;
+  // In Vault mode, copy the formatted export if format isn't plain
+  const val = (state.mode === 'vault' && r && r.display && typeof r.display === 'string' && r.display !== r.pw) ? r.display : state.current;
+  const ok = await copyText(val);
+  if (!ok){ toast('Copy blocked. Select manually.'); return; }
+  addHist(state.current);
+  if ($('autoClear').checked){
+    toast(tr('copied') + ' · clipboard clears in 30s');
+    clearTimeout(clearT);
+    clearT = setTimeout(async () => {
+      try { const cur = await navigator.clipboard.readText(); if (cur === val) await navigator.clipboard.writeText(''); }
+      catch (e){ try { await navigator.clipboard.writeText(''); } catch (e2){} }
+    }, 30000);
+  } else toast(tr('copied'));
+}
+
+/* breach */
+async function sha1hex(s){
+  const b = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+async function breachCount(pw){
+  const h = await sha1hex(pw);
+  const res = await fetch('https://api.pwnedpasswords.com/range/' + h.slice(0, 5), { headers:{ 'Add-Padding':'true' } });
+  if (!res.ok) throw new Error('bad');
+  const txt = await res.text();
+  for (const line of txt.split('\n')){ const [suf, c] = line.trim().split(':'); if (suf === h.slice(5)) return +c; }
+  return 0;
+}
+async function doBreach(pw, outEl, btn){
+  if (!pw) return;
+  btn.disabled = true; outEl.textContent = 'Checking…'; outEl.style.color = 'var(--muted)';
+  try {
+    const c = await breachCount(pw);
+    if (c > 0){ outEl.textContent = 'In ' + c.toLocaleString('en-IN') + ' breaches — don’t use.'; outEl.style.color = 'var(--bad)'; }
+    else { outEl.textContent = 'Not found in known breaches.'; outEl.style.color = 'var(--ok)'; }
+  } catch (e){ outEl.textContent = 'Service unreachable.'; outEl.style.color = 'var(--warn)'; }
+  btn.disabled = false;
+}
+
+/* analyzer */
+const COMMON = 'password passwd admin welcome login letmein qwerty iloveyou monkey dragon master sunshine princess football cricket india bharat krishna shiva ganesh mumbai delhi bangalore bengaluru karnataka test secret shadow hello love baby superman batman freedom whatever trustno computer google facebook whatsapp mobile iphone samsung lucky money happy family friend abcd qazwsx zaq1 changeme default guest root admin123 cisco juniper fortinet linksys netgear dlink tplink'.split(' ');
+const DICT = [...new Set([...COMMON, ...WORDS])].filter(w => w.length >= 4).sort((a, b) => b.length - a.length);
+const LEET = { '@':'a','4':'a','3':'e','0':'o','$':'s','5':'s','!':'i','7':'t','|':'l','+':'t' };
+const deleet = (s, one) => [...s].map(c => c === '1' ? one : (LEET[c] || c)).join('');
+const ROWS = ['qwertyuiop','asdfghjkl','zxcvbnm','1234567890'].flatMap(r => [r, [...r].reverse().join('')]);
+
+function analyze(pw, personal){
+  const n = pw.length;
+  if (!n) return { bits:0, issues:[] };
+  const cov = new Array(n).fill(false), issues = new Set(); let segs = 0;
+  const mark = (s, e, label) => { let any = false; for (let i = s; i < e; i++) if (!cov[i]){ cov[i] = true; any = true; } if (any){ segs++; issues.add(label); } };
+  const low = pw.toLowerCase();
+  const variants = [low, deleet(low, 'l'), deleet(low, 'i')];
+  const scan = (w, label) => variants.forEach(v => { let i = v.indexOf(w); while (i !== -1){ mark(i, i + w.length, label + (v === low ? '' : ' (symbol swaps don’t help)')); i = v.indexOf(w, i + 1); } });
+  (personal || []).forEach(p => { if (p.length >= 3) scan(p, 'Contains personal info “' + p + '”'); });
+  DICT.forEach(w => scan(w, 'Contains common word “' + w + '”'));
+  for (let i = 0; i < n; i++){
+    for (const row of ROWS){
+      const j = row.indexOf(low[i]); if (j < 0) continue;
+      let k = 1; while (i + k < n && j + k < row.length && low[i + k] === row[j + k]) k++;
+      if (k >= 4) mark(i, i + k, 'Keyboard pattern “' + pw.slice(i, i + k) + '”');
+    }
+  }
+  for (let i = 0; i < n - 3; i++){
+    const d = low.charCodeAt(i + 1) - low.charCodeAt(i);
+    if (d !== 1 && d !== -1) continue;
+    let k = 1; while (i + k < n && low.charCodeAt(i + k) - low.charCodeAt(i + k - 1) === d) k++;
+    if (k >= 4){ mark(i, i + k, 'Sequence “' + pw.slice(i, i + k) + '”'); i += k - 1; }
+  }
+  for (let i = 0; i < n;){
+    let k = 1; while (i + k < n && pw[i + k] === pw[i]) k++;
+    if (k >= 3) mark(i, i + k, 'Repeated “' + pw[i] + '” ×' + k);
+    i += k;
+  }
+  for (let b = 2; b <= n / 2; b++) if (n % b === 0 && pw === pw.slice(0, b).repeat(n / b)){ mark(0, n, 'Block repeats'); break; }
+  const yr = /(19|20)\d{2}/g; let m;
+  while ((m = yr.exec(pw))) mark(m.index, m.index + 4, 'Looks like a year (' + m[0] + ')');
+  let pool = 0;
+  if (/[a-z]/.test(pw)) pool += 26; if (/[A-Z]/.test(pw)) pool += 26; if (/\d/.test(pw)) pool += 10; if (/[^A-Za-z0-9]/.test(pw)) pool += 33;
+  const rem = cov.filter(c => !c).length;
+  const bits = rem * log2(Math.max(pool, 2)) + segs * Math.max(6, log2(DICT.length));
+  const list = [...issues];
+  if (n < 8) list.unshift('Shorter than 8');
+  else if (n < 12) list.unshift('Under 12 characters');
+  if (pool && pool <= 26) list.push('Uses only one character type');
+  return { bits, issues: list };
+}
+function runCheck(){
+  const pw = $('cIn').value;
+  const list = $('cIssues'); list.textContent = '';
+  if (!pw){ paintMeter($('cMeter'), -1); ['cLabel','cBits','cTime'].forEach(i => $(i).textContent = '—'); $('cBreach').disabled = true; $('cBreachRes').textContent = ''; return; }
+  const personal = $('cPers').value.toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+  const a = analyze(pw, personal), lv = level(a.bits);
+  paintMeter($('cMeter'), lv);
+  $('cLabel').textContent = tr('lv')[lv]; $('cLabel').style.color = LVC[lv];
+  $('cBits').textContent = Math.round(a.bits) + ' bits';
+  $('cTime').textContent = crackTime(a.bits);
+  $('cBreach').disabled = false;
+  a.issues.forEach(t => { const li = document.createElement('li'); li.textContent = t; list.appendChild(li); });
+  if (!a.issues.length){ const li = document.createElement('li'); li.textContent = 'No weak patterns found.'; list.appendChild(li); }
+  if (lv < 3){ const li = document.createElement('li'); li.style.color = 'var(--muted2)'; li.textContent = 'Make it longer, or generate a new one.'; list.appendChild(li); }
+}
+
+/* presets */
+const PRESETS = {
+  everyday:{ len:16, u:1, l:1, d:1, s:1, sim:0, amb:0 },
+  strict:{ len:12, u:1, l:1, d:1, s:1, sim:0, amb:1 },
+  bank:{ len:20, u:1, l:1, d:1, s:1, sim:1, amb:0 },
+  wifi:{ len:20, u:1, l:1, d:1, s:0, sim:1, amb:0 },
+  nosym:{ len:16, u:1, l:1, d:1, s:0, sim:0, amb:0 }
+};
+function applyPreset(k){
+  const p = PRESETS[k]; if (!p) return;
+  $('rLen').value = p.len; $('rLenV').textContent = p.len;
+  $('r_upper').checked = !!p.u; $('r_lower').checked = !!p.l; $('r_digit').checked = !!p.d; $('r_sym').checked = !!p.s;
+  $('rSim').checked = !!p.sim; $('rAmb').checked = !!p.amb; $('rReq').checked = true;
+}
+
+/* phone UI */
+function buildPhone(){
+  const pad = $('phonePad'); pad.textContent = '';
+  for (let i = 1; i <= 9; i++){
+    const k = document.createElement('button');
+    k.className = 'key'; k.type = 'button'; k.textContent = i; k.dataset.n = i;
+    k.setAttribute('aria-label', 'Dot ' + i);
+    k.addEventListener('click', () => togglePhone(i));
+    pad.appendChild(k);
+  }
+}
+function togglePhone(n){
+  const idx = state.phoneSeq.indexOf(n);
+  if (idx === -1){ if (state.phoneSeq.length < 9) state.phoneSeq.push(n); }
+  else if (idx === state.phoneSeq.length - 1) state.phoneSeq.pop();
+  else state.phoneSeq = state.phoneSeq.slice(0, idx);
+  drawPhone(state.phoneSeq); regen();
+}
+function drawPhone(seq){
+  const pad = $('phonePad');
+  [...pad.children].forEach(k => {
+    const n = +k.dataset.n;
+    const idx = seq.indexOf(n);
+    if (idx >= 0){ k.classList.add('on'); k.dataset.order = idx + 1; }
+    else { k.classList.remove('on'); k.removeAttribute('data-order'); }
+  });
+}
+function phoneRandom(){
+  const len = +$('phLen').value;
+  state.phoneSeq = randomPattern(len, {
+    noCorner: $('phCorner').checked,
+    noStraight: $('phStraight').checked,
+    knight: $('phKnight').checked
+  });
+  drawPhone(state.phoneSeq); regen();
+}
+function phoneClear(){ state.phoneSeq = []; drawPhone([]); showPlaceholder('Draw a pattern or press "New random".'); }
+
+/* tabs / events */
+function setMode(m){
+  state.mode = m; state.last = null;
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.mode === m)));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('hidden', p.id !== 'p-' + m));
+  $('outCard').classList.toggle('hidden', m === 'bulk' || m === 'check');
+  updateModeLabel();
+  if (m === 'bulk') $('bOut').value = '';
+  if (m === 'phone' && !state.phoneSeq.length){ phoneRandom(); return; }
+  regen();
+}
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) setMode(b.dataset.mode); });
+
+let deb;
+document.querySelectorAll('.panel').forEach(p => p.addEventListener('input', e => {
+  const t = e.target;
+  if (t.type === 'range'){ const v = $(t.id + 'V'); if (v) v.textContent = t.value; }
+  if (t.id === 'rPreset') applyPreset(t.value);
+  if (p.id === 'p-check'){ runCheck(); return; }
+  if (p.id === 'p-bulk'){ if (t.id === 'bCount') $('bCountV').textContent = t.value; return; }
+  if (p.id === 'p-phone'){ return; }
+  if (!p.hasAttribute('data-auto')) return;
+  if (p.id === 'p-stateless'){ showPlaceholder('Deriving…'); clearTimeout(deb); deb = setTimeout(regen, 350); return; }
+  regen();
+}));
+
+/* vault UI */
+document.getElementById('vPresets').addEventListener('click', e => {
+  const b = e.target.closest('.preset-btn'); if (!b) return;
+  applyVaultPreset(b.dataset.preset);
+});
+document.getElementById('vFormat').addEventListener('click', e => {
+  const b = e.target.closest('button[data-fmt]'); if (!b) return;
+  document.querySelectorAll('#vFormat button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  vState.format = b.dataset.fmt;
+  regen();
+});
+
+$('patChips').addEventListener('click', e => { const b = e.target.closest('[data-pat]'); if (b){ $('patIn').value = b.dataset.pat; regen(); } });
+
+$('btnRegen').onclick = regen; $('btnRegen2').onclick = regen;
+$('btnCopy').onclick = doCopy;
+$('btnShow').onclick = () => {
+  state.hidden = !state.hidden;
+  $('eyeIcon').innerHTML = state.hidden
+    ? '<path d="M17.9 17.9A10.9 10.9 0 0112 19c-7 0-11-7-11-7a19 19 0 015-5.9M9.9 4.2A10.7 10.7 0 0112 4c7 0 11 8 11 8a19 19 0 01-2.2 3.2M1 1l22 22"/>'
+    : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>';
+  if (state.current){
+    const r = state.last;
+    const display = r && r.display && typeof r.display === 'string' ? r.display : state.current;
+    drawPw(display);
+  }
+};
+$('btnBreach').onclick = () => doBreach(state.current, $('breachRes'), $('btnBreach'));
+$('cBreach').onclick = () => doBreach($('cIn').value, $('cBreachRes'), $('cBreach'));
+$('cShow').onclick = () => { const i = $('cIn'); i.type = i.type === 'password' ? 'text' : 'password'; };
+$('histClear').onclick = () => { state.hist = []; drawHist(); };
+$('themeBtn').onclick = () => {
+  const r = document.documentElement;
+  r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light';
+  document.querySelector('meta[name=theme-color]').content = r.dataset.theme === 'light' ? '#f6f8ff' : '#060713';
+  $('themeIcon').innerHTML = r.dataset.theme === 'light'
+    ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>'
+    : '<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>';
+};
+$('lang').onchange = e => applyLang(e.target.value);
+
+$('phoneNew').onclick = phoneRandom;
+$('phoneClear').onclick = phoneClear;
+
+/* bulk */
+function bulkList(){
+  const src = $('bSrc').value, n = +$('bCount').value, out = [];
+  for (let i = 0; i < n; i++){ const r = GEN[src](); if (r.empty){ return { err:r.empty }; } out.push({ pw:r.pw, bits:r.bits }); }
+  return { out };
+}
+$('bGo').onclick = () => { const r = bulkList(); $('bOut').value = r.err ? r.err : r.out.map(x => x.pw).join('\n'); };
+$('bCopy').onclick = async () => { if ($('bOut').value){ await copyText($('bOut').value); toast(tr('copied')); } };
+function download(name, text, type){
+  try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+  catch (e){ toast('Download blocked in preview — works when hosted.'); }
+}
+$('bTxt').onclick = () => { if (!$('bOut').value) $('bGo').click(); download('passwords.txt', $('bOut').value, 'text/plain'); };
+$('bCsv').onclick = () => {
+  const r = bulkList(); if (r.err){ $('bOut').value = r.err; return; }
+  $('bOut').value = r.out.map(x => x.pw).join('\n');
+  const q = s => '"' + s.replace(/"/g, '""') + '"';
+  download('passwords.csv', 'password,entropy_bits\n' + r.out.map(x => q(x.pw) + ',' + Math.round(x.bits)).join('\n'), 'text/csv');
+};
+
+/* shortcuts */
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(e.target.tagName)) return;
+  if (e.code === 'Space'){ e.preventDefault(); regen(); }
+  else if (e.key === 'c' || e.key === 'C'){ doCopy(); }
+});
+
+/* init */
+if (matchMedia('(prefers-color-scheme: light)').matches){
+  document.documentElement.dataset.theme = 'light';
+  document.querySelector('meta[name=theme-color]').content = '#f6f8ff';
+  $('themeIcon').innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
+}
+buildPhone();
+drawHist();
+applyLang('en');
+applyVaultPreset('ssh');
+regen();
+/* service worker (offline support) */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
